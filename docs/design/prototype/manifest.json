@@ -1,0 +1,74 @@
+[
+  {
+    "name": "today",
+    "file": "01-today.png",
+    "mobile_file": "01-today-mobile.png",
+    "source_size": [
+      1280,
+      1000
+    ]
+  },
+  {
+    "name": "history",
+    "file": "02-history.png",
+    "mobile_file": "02-history-mobile.png",
+    "source_size": [
+      1280,
+      1000
+    ]
+  },
+  {
+    "name": "stats",
+    "file": "03-stats.png",
+    "mobile_file": "03-stats-mobile.png",
+    "source_size": [
+      1280,
+      1000
+    ]
+  },
+  {
+    "name": "settings",
+    "file": "04-settings.png",
+    "mobile_file": "04-settings-mobile.png",
+    "source_size": [
+      1280,
+      1000
+    ]
+  },
+  {
+    "name": "timer",
+    "file": "05-timer.png",
+    "mobile_file": "05-timer-mobile.png",
+    "source_size": [
+      1280,
+      1000
+    ]
+  },
+  {
+    "name": "toilet-form",
+    "file": "06-toilet-form.png",
+    "mobile_file": "06-toilet-form-mobile.png",
+    "source_size": [
+      1280,
+      1000
+    ]
+  },
+  {
+    "name": "meal-reminder",
+    "file": "07-meal-form.png",
+    "mobile_file": "07-meal-form-mobile.png",
+    "source_size": [
+      1280,
+      1000
+    ]
+  },
+  {
+    "name": "meal-entry",
+    "file": "08-meal-entry.png",
+    "mobile_file": "08-meal-entry-mobile.png",
+    "source_size": [
+      1280,
+      1000
+    ]
+  }
+]

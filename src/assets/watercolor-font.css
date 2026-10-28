@@ -1,0 +1,11 @@
+/* Xiaolai font, SIL OFL 1.1. Full copyright/license is bundled in XIAOLAI-OFL.txt and the Settings license disclosure. */
+@font-face {
+  font-family: "Xiaolai UI";
+  src: url("./xiaolai-ui-subset.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+:root {
+  --font-hand: "Xiaolai UI", system-ui, sans-serif;
+}

@@ -1,0 +1,225 @@
+/* Settings-only presentation; the injected account panel keeps its own styles. */
+.settings-page {
+  color: var(--ink, #345052);
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  min-width: 0;
+}
+.settings-page > h1 {
+  font-family: var(--font-hand, system-ui);
+  font-weight: 400;
+  font-size: 30px;
+  margin: 0 0 12px;
+}
+.settings-page .settings-section {
+  padding-block: 14px;
+  margin: 0;
+  border-top: 1px solid var(--line, #dfdfd3);
+  min-width: 0;
+}
+.settings-page .settings-section > h2 {
+  font-family: var(--font-hand, system-ui);
+  font-weight: 400;
+  font-size: 23px;
+  line-height: 1.35;
+  margin: 0 0 10px;
+}
+.settings-page .settings-reminders {
+  border-top: 0;
+  padding-top: 0;
+}
+.settings-page .settings-section > p,
+.settings-page > p {
+  margin: 8px 0;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.settings-page .settings-editor fieldset {
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.settings-page .meal-setting {
+  display: grid;
+  grid-template-columns: minmax(44px, 1fr) minmax(110px, 146px) 72px;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line, #dfdfd3);
+  margin: 0;
+}
+.settings-page .meal-setting > label {
+  color: var(--ink, #345052);
+  margin: 0;
+  font-size: 14px;
+}
+.settings-page .meal-setting > input {
+  margin: 0;
+  min-height: 44px;
+  padding: 8px 4px;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+  color: var(--ink, #345052);
+  font-variant-numeric: tabular-nums;
+}
+.settings-page .settings-toggle {
+  min-height: 44px;
+  padding: 7px 6px;
+  border-radius: 24px 18px 23px 20px;
+  font-size: 12px;
+  color: var(--muted, #687d78);
+  background: #edf0e8;
+  border: 1px solid transparent;
+}
+.settings-page .settings-toggle[aria-pressed="true"] {
+  color: #284e49;
+  background: #dcebe4;
+  border-color: #a5bdb2;
+}
+.settings-page .settings-foreground {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin: 8px 0 0;
+  color: var(--ink, #345052);
+  font-size: 14px;
+}
+.settings-page .settings-foreground > input {
+  accent-color: var(--lake, #406f79);
+  flex: 0 0 auto;
+}
+.settings-page .settings-reminders > button,
+.settings-page .settings-foods > button {
+  color: var(--lake, #406f79);
+  min-height: 44px;
+  border-color: transparent;
+  background: transparent;
+  padding: 8px 0;
+  font-size: 13px;
+}
+.settings-page .template-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: 8px;
+  align-items: center;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--line, #dfdfd3);
+  margin: 0;
+}
+.settings-page .template-row > input {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  min-height: 44px;
+  border: 0;
+  border-radius: 0;
+  padding: 8px 0;
+  background: transparent;
+  font-size: 14px;
+}
+.settings-page .template-row > button {
+  width: 44px;
+  min-height: 44px;
+  border: 0;
+  padding: 6px;
+  color: #627c70;
+  font-size: 24px;
+}
+.settings-page .settings-new-label {
+  margin: 12px 0 0;
+}
+.settings-page .settings-new-label > input {
+  min-height: 44px;
+  border-radius: 10px 7px 9px 6px;
+  background: var(--paper, #fffdf6);
+  font-size: 14px;
+}
+.settings-page .settings-editor .primary {
+  margin-top: 0;
+  border-radius: 26px 22px 25px 23px;
+  min-height: 48px;
+  background: var(--lake, #406f79);
+  border-color: var(--lake, #406f79);
+  color: #fff;
+  font-family: var(--font-hand, system-ui);
+  font-size: 19px;
+  font-weight: 400;
+}
+.settings-page .settings-editor .primary:hover {
+  background: #345d67;
+}
+.settings-page .settings-editor .text-button {
+  margin: 4px 0 0;
+  min-height: 44px;
+  color: var(--muted, #687d78);
+}
+.settings-page > [role="status"]:empty {
+  display: none;
+}
+.settings-page > [role="alert"] {
+  margin: 8px 0;
+  padding: 12px;
+}
+.settings-page .settings-account {
+  margin-top: 12px;
+  padding: 14px 12px;
+  border: 0;
+  background: linear-gradient(110deg, #e2eee7, #f0f2e8);
+  border-radius: 32px 12px 35px 9px / 13px 19px 16px 10px;
+}
+.settings-page .settings-privacy {
+  margin-top: 14px;
+}
+.settings-page .settings-exports {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.settings-page .settings-exports > button {
+  min-height: 44px;
+  flex: 1 1 120px;
+  border-radius: 12px 8px 11px 9px;
+  border-color: var(--line, #dfdfd3);
+  color: var(--lake, #406f79);
+  font-size: 13px;
+}
+.settings-page .settings-clear {
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 9px 0;
+  border-color: transparent;
+  color: #944d43;
+  font-size: 13px;
+}
+.settings-page .settings-reminder-help > summary,
+.settings-page .settings-license > summary {
+  min-height: 44px;
+  align-content: center;
+  color: var(--lake, #406f79);
+  font-size: 13px;
+}
+.settings-page .settings-license > pre {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  margin: 8px 0;
+  padding: 12px;
+  background: #eff1e9;
+  border-radius: 8px;
+}
+@media (max-width: 350px) {
+  .settings-page .meal-setting {
+    grid-template-columns: minmax(36px, 1fr) minmax(100px, 126px) 64px;
+    gap: 4px;
+  }
+}
