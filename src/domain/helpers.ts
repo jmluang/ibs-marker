@@ -145,6 +145,42 @@ export const durationMinutes = (e: ToiletEntry): number | null =>
     : e.durationSource === "timer" && e.startedAt && e.endedAt
       ? Math.max(0, (Date.parse(e.endedAt) - Date.parse(e.startedAt)) / 60000)
       : null;
+/** Keep raw form text separate from domain numbers, including incomplete input. */
+export function parseDurationInput(
+  raw: string,
+): { valid: true; minutes: number | null } | { valid: false } {
+  const text = raw.trim();
+  if (text === "") return { valid: true, minutes: null };
+  if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text))
+    return { valid: false };
+  const minutes = Number(text);
+  return Number.isFinite(minutes) && minutes >= 0
+    ? { valid: true, minutes }
+    : { valid: false };
+}
+/** No-op edits preserve the timer source and exact clock; real intent is sticky. */
+export function applyDurationEdit(
+  entry: ToiletEntry,
+  raw: string,
+  durationEdited = false,
+): { entry: ToiletEntry; durationEdited: boolean } {
+  const parsed = parseDurationInput(raw);
+  if (!parsed.valid) return { entry, durationEdited };
+  if (
+    parsed.minutes !== null &&
+    !durationEdited &&
+    durationMinutes(entry) === parsed.minutes
+  )
+    return { entry, durationEdited };
+  return {
+    entry: {
+      ...entry,
+      durationSource: parsed.minutes === null ? "unknown" : "estimated",
+      estimatedDurationMinutes: parsed.minutes,
+    },
+    durationEdited: true,
+  };
+}
 export const lastPassed = (entries: Entry[]): ToiletEntry | undefined =>
   sortEntries(entries).find(
     (e): e is ToiletEntry => e.kind === "toilet" && e.result === "passed",

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { ArrowLeft } from "lucide-react";
 import type { Entry, MealEntry, Discomfort } from "../domain/types";
-import { shanghaiDate, shanghaiTime } from "../domain/helpers";
+import { durationMinutes, shanghaiDate, shanghaiTime } from "../domain/helpers";
 export const slots = {
   breakfast: "早餐",
   lunch: "午餐",
@@ -129,33 +129,43 @@ export function Timeline({
 }) {
   return entries.length ? (
     <div className="timeline">
-      {[...entries].sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt)).map((e) => (
-        <button type="button" className={`entry entry-${e.kind}`} key={e.id} onClick={() => onEdit(e)}>
-          <span className="entry-top">
-            <time>
-              {shanghaiTime(e.occurredAt)}
-              {e.estimatedTime ? " · 估计" : ""}
-            </time>
-            <span className="blue">
-              {e.kind === "toilet"
-                ? "如厕"
-                : e.kind === "symptom"
-                  ? "症状"
-                  : slots[(e as MealEntry).slot]}{" "}
-              ↗
-            </span>
-          </span>
-          <strong>{entryTitle(e)}</strong>
-          <span className="entry-detail">
-            {e.kind === "toilet"
-              ? `${discomfortText(e.discomfort)} · ${e.durationSource === "unknown" ? "时长未知" : e.durationSource === "estimated" ? "估计 " + e.estimatedDurationMinutes + " 分钟" : "计时时长已记录"}`
-              : e.kind === "meal"
-                ? e.tags.join("、")
-                : e.context}
-            {e.note ? ` · ${e.note}` : ""}
-          </span>
-        </button>
-      ))}
+      {[...entries]
+        .sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt))
+        .map((e) => {
+          const minutes = e.kind === "toilet" ? durationMinutes(e) : null;
+          return (
+            <button
+              type="button"
+              className={`entry entry-${e.kind}`}
+              key={e.id}
+              onClick={() => onEdit(e)}
+            >
+              <span className="entry-top">
+                <time>
+                  {shanghaiTime(e.occurredAt)}
+                  {e.estimatedTime ? " · 估计" : ""}
+                </time>
+                <span className="blue">
+                  {e.kind === "toilet"
+                    ? "如厕"
+                    : e.kind === "symptom"
+                      ? "症状"
+                      : slots[(e as MealEntry).slot]}{" "}
+                  ↗
+                </span>
+              </span>
+              <strong>{entryTitle(e)}</strong>
+              <span className="entry-detail">
+                {e.kind === "toilet"
+                  ? `${discomfortText(e.discomfort)} · ${minutes === null ? "时长未知" : e.durationSource === "estimated" ? "手动估时 " + minutes + " 分钟" : "计时 " + minutes.toFixed(1) + " 分钟"}`
+                  : e.kind === "meal"
+                    ? e.tags.join("、")
+                    : e.context}
+                {e.note ? ` · ${e.note}` : ""}
+              </span>
+            </button>
+          );
+        })}
     </div>
   ) : (
     <div className="empty">

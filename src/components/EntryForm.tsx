@@ -11,7 +11,12 @@ import type {
 } from "../domain/types";
 import { trackerStore as store } from "../state/TrackerStore";
 import { useTracker } from "../state/useTracker";
-import { durationMinutes, validateEntry } from "../domain/helpers";
+import {
+  applyDurationEdit,
+  durationMinutes,
+  parseDurationInput,
+  validateEntry,
+} from "../domain/helpers";
 import { randomUuid } from "../domain/uuid";
 import {
   Back,
@@ -25,7 +30,15 @@ import {
   parseTime,
   errorText,
 } from "./ui";
-type Draft = { entry: Entry; baseRevision: number; editing: boolean };
+type Draft = {
+  entry: Entry;
+  baseRevision: number;
+  editing: boolean;
+  // UI intent/text only: never part of the persisted Entry or sync/export model.
+  durationEdited?: boolean;
+  durationRaw?: string;
+  durationExpanded?: boolean;
+};
 export function newEntry(
   kind: Entry["kind"],
   slot: MealEntry["slot"] = "snack",
@@ -198,8 +211,67 @@ export default function EntryForm({
   }, [draft, draftKey]);
   const update = (fields: Partial<Entry>) =>
     setDraft((d) => ({ ...d, entry: { ...d.entry, ...fields } as Entry }));
+  // Legacy timer-form drafts may contain the default unknown rather than a clear.
+  // Only explicit intent can override the actual clock duration in this flow.
+  const durationEntry =
+    entry.kind === "toilet"
+      ? timer && !draft.durationEdited
+        ? {
+            ...entry,
+            startedAt:
+              snapshot.timer?.id === entry.id
+                ? snapshot.timer.startedAt
+                : initial.kind === "toilet"
+                  ? initial.startedAt
+                  : entry.startedAt,
+            endedAt:
+              snapshot.timer?.id === entry.id
+                ? snapshot.timer.endedAt
+                : initial.kind === "toilet"
+                  ? initial.endedAt
+                  : entry.endedAt,
+            durationSource: "timer" as const,
+            estimatedDurationMinutes: null,
+          }
+        : entry
+      : null;
+  const durationValue = durationEntry ? durationMinutes(durationEntry) : null;
+  const durationRaw =
+    draft.durationRaw ?? (durationValue === null ? "" : String(durationValue));
+  const durationInvalid =
+    entry.kind === "toilet" &&
+    draft.durationRaw !== undefined &&
+    !parseDurationInput(draft.durationRaw).valid;
+  const durationCorrection =
+    timer ||
+    (initial.kind === "toilet" && initial.durationSource === "timer") ||
+    draft.durationExpanded !== undefined;
+  const changeDuration = (raw: string) => {
+    setDraft((d) => {
+      if (d.entry.kind !== "toilet") return d;
+      // Use the clock-backed view for untouched legacy timer drafts as well.
+      const original =
+        timer && !d.durationEdited && durationEntry
+          ? {
+              ...d.entry,
+              startedAt: durationEntry.startedAt,
+              endedAt: durationEntry.endedAt,
+              durationSource: "timer" as const,
+              estimatedDurationMinutes: null,
+            }
+          : d.entry;
+      const next = applyDurationEdit(original, raw, d.durationEdited);
+      return {
+        ...d,
+        entry: next.durationEdited ? next.entry : d.entry,
+        durationEdited: next.durationEdited,
+        durationRaw: raw,
+      };
+    });
+  };
   async function save() {
     setError("");
+    if (durationInvalid) return;
     if (validateEntry(entry).length) {
       setError(
         "请补充有效的时间、排出后的形态和不适选项。选择有不适时请至少选一个症状。",
@@ -211,7 +283,11 @@ export default function EntryForm({
       await queue.current;
       if (!store.isCurrent(token.current)) throw Error("STALE_IDENTITY");
       const saved = { ...entry, updatedAt: nowIso() };
-      if (timer) await store.finalizeTimer(saved as ToiletEntry);
+      if (timer)
+        await store.finalizeTimer(saved as ToiletEntry, {
+          expectedRevision: draft.baseRevision,
+          durationEdited: draft.durationEdited === true,
+        });
       else await store.saveEntry(saved, draft.baseRevision);
       if (!store.isCurrent(token.current)) return;
       stopping.current = true;
@@ -358,9 +434,7 @@ export default function EntryForm({
                       ),
                     )}
                   </div>
-                  <p className="muted">
-                    按顺序点击追加，可调整顺序。
-                  </p>
+                  <p className="muted">按顺序点击追加，可调整顺序。</p>
                   <ol className="form-order">
                     {e.stoolForms.map((f, i) => (
                       <li key={i}>
@@ -414,11 +488,43 @@ export default function EntryForm({
                   update({ relief } as Partial<ToiletEntry>)
                 }
               />
-              {timer || e.durationSource === "timer" ? (
-                <p className="notice">
-                  计时时长：{durationMinutes(e)?.toFixed(1) ?? "—"} 分钟（按开始
-                  / 结束时间计算）
-                </p>
+              {durationCorrection ? (
+                <>
+                  <p className="notice">
+                    {durationEntry?.durationSource === "timer"
+                      ? `计时时长：${durationValue?.toFixed(1) ?? "—"} 分钟（按开始 / 结束时间计算）`
+                      : durationValue === null
+                        ? "时长未知"
+                        : `手动估时 ${durationValue} 分钟`}{" "}
+                    <button
+                      type="button"
+                      aria-expanded={draft.durationExpanded === true}
+                      onClick={() =>
+                        setDraft((d) => ({
+                          ...d,
+                          durationExpanded: !d.durationExpanded,
+                        }))
+                      }
+                    >
+                      {draft.durationExpanded ? "收起" : "修改用时"}
+                    </button>
+                  </p>
+                  {draft.durationExpanded && (
+                    <label>
+                      用时（分钟）
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={durationRaw}
+                        aria-invalid={durationInvalid}
+                        aria-describedby={
+                          durationInvalid ? "duration-error" : undefined
+                        }
+                        onChange={(event) => changeDuration(event.target.value)}
+                      />
+                    </label>
+                  )}
+                </>
               ) : (
                 <>
                   <Choices
@@ -429,34 +535,30 @@ export default function EntryForm({
                     ]}
                     value={e.durationSource}
                     onChange={(durationSource) =>
-                      update({
-                        durationSource,
-                        estimatedDurationMinutes:
-                          durationSource === "estimated" ? 5 : null,
-                      } as Partial<ToiletEntry>)
+                      changeDuration(durationSource === "estimated" ? "5" : "")
                     }
                   />
                   {e.durationSource === "estimated" && (
                     <label>
                       估计耗时（分钟）
                       <input
-                        type="number"
-                        min="0"
-                        step="0.5"
-                        required
-                        value={e.estimatedDurationMinutes ?? ""}
-                        onChange={(event) =>
-                          update({
-                            estimatedDurationMinutes:
-                              event.target.value === ""
-                                ? null
-                                : Number(event.target.value),
-                          } as Partial<ToiletEntry>)
+                        type="text"
+                        inputMode="decimal"
+                        value={durationRaw}
+                        aria-invalid={durationInvalid}
+                        aria-describedby={
+                          durationInvalid ? "duration-error" : undefined
                         }
+                        onChange={(event) => changeDuration(event.target.value)}
                       />
                     </label>
                   )}
                 </>
+              )}
+              {durationInvalid && (
+                <p className="error" id="duration-error" role="alert">
+                  请输入有效的非负分钟数，或清空表示未知。
+                </p>
               )}
             </>
           )}

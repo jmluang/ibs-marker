@@ -286,7 +286,12 @@ export class TrackerStore {
       };
     });
   }
-  finalizeTimer(entry: import("../domain/types").ToiletEntry) {
+  finalizeTimer(
+    entry: import("../domain/types").ToiletEntry,
+    options?: { expectedRevision?: number; durationEdited?: boolean },
+  ) {
+    const expectedRevision = options?.expectedRevision ?? 0;
+    const durationEdited = options?.durationEdited === true;
     return this.mutate((d) => {
       if (!d.timer) {
         if (d.records[entry.id]) return;
@@ -294,12 +299,21 @@ export class TrackerStore {
       }
       if (d.timer.id !== entry.id || !d.timer.endedAt)
         throw new Error("TIMER_MISMATCH");
+      // This CAS must follow the duplicate-finalize return, inside the transaction.
+      if ((d.editRevisions[entry.id] ?? 0) !== expectedRevision)
+        throw new Error("STALE_REVISION");
+      const preserveDuration =
+        durationEdited &&
+        (entry.durationSource === "estimated" ||
+          entry.durationSource === "unknown");
       this.putEntry(d, {
         ...entry,
         startedAt: d.timer.startedAt,
         endedAt: d.timer.endedAt,
-        durationSource: "timer",
-        estimatedDurationMinutes: null,
+        durationSource: preserveDuration ? entry.durationSource : "timer",
+        estimatedDurationMinutes: preserveDuration
+          ? entry.estimatedDurationMinutes
+          : null,
       });
       d.timer = null;
     });

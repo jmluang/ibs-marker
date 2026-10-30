@@ -185,12 +185,9 @@ test("最终Node候选：原生版本SW冷precache字体、私有登录、离线
   for (const [name, id] of [["历史", "watercolor-history"], ["统计", "watercolor-stats"], ["设置", "watercolor-settings"], ["今天", "watercolor-home"]]) {
     await page.getByRole("navigation").getByRole("button", { name, exact: true }).click();
     await expect(page.getByTestId(id)).toBeVisible();
-    const heading = await page.getByTestId(id).locator("h1").evaluate(el => {
-      const css = getComputedStyle(el);
-      return { family: css.fontFamily, weight: css.fontWeight };
-    });
-    expect(heading.family, `${name} main-page heading`).toContain("Xiaolai UI");
-    expect(heading.weight, `${name} main-page heading`).toBe("400");
+    const heading = page.getByTestId(id).locator("h1");
+    await expect(heading, `${name} main-page heading`).toHaveCSS("font-family", /Xiaolai UI/);
+    await expect(heading, `${name} main-page heading`).toHaveCSS("font-weight", "400");
     expect((await partition(page)).data.timer).toEqual(timer);
   }
   await page.locator(".entry").filter({ hasText: note }).click();
